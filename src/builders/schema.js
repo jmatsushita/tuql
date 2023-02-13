@@ -11,6 +11,7 @@ import {
   defaultListArgs,
   defaultArgs,
 } from 'graphql-sequelize';
+import { createContext, EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import { singular } from 'pluralize';
 import Sequelize, { QueryTypes } from 'sequelize';
 
@@ -31,6 +32,10 @@ import {
   makePolyArgs,
   getPolyKeys,
 } from './arguments';
+
+// Tell `graphql-sequelize` where to find the DataLoader context in the
+// global request context which will be passed by graphql-mesh
+resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
 const GenericResponseType = new GraphQLObjectType({
   name: 'GenericResponse',
@@ -269,11 +274,20 @@ const build = (db) => {
       fields: mutations,
     });
 
+    const schema = new GraphQLSchema({
+      query,
+      mutation,
+    })
+
+    const dataloaderContext = createContext(db);
+
+    const contextVariables = {
+      [EXPECTED_OPTIONS_KEY]: dataloaderContext,
+    }
+
     resolve(
-      new GraphQLSchema({
-        query,
-        mutation,
-      }),
+      { schema, contextVariables }
     );
+
   });
 };
