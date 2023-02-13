@@ -1,7 +1,7 @@
 node_modules
 database.sqlite
 test.sql
-dist
+# dist
 coverage
 infile.sql
 .DS_Store
